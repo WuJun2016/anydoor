@@ -7,6 +7,9 @@ const readdir = promisify(fs.readdir);
 const config = require('../config/defaultconfig');
 const mime = require('./mime');
 const compress = require('./compress');
+const range = require('./range');
+const isFresh = require('./cache');
+
 const tplPath = path.join(__dirname, '../template/dir.tpl'); // eslint-disable-line
 const source = fs.readFileSync(tplPath);
 const template = Handlebars.compile(source.toString());
@@ -15,12 +18,27 @@ module.exports = async function (req, res, filePath) {
     const stats = await stat(filePath);
     if (stats.isFile()) {
       const contentType = mime(filePath);
-      res.statusCode = 200;
+      
       res.setHeader('Content-type', contentType);
-      let rs = fs.createReadStream(filePath);
+      console.log(isFresh(stats, req, res));
+      if (isFresh(stats, req, res)) {
+        res.statusCode == 304;
+        res.end();
+        return;
+      }
+
+      let rs;
+      const { code, start, end } = range(stats.size, req, res);
+      if( code === 200 ) {
+        rs = fs.createReadStream(filePath);
+        res.statusCode = 200;
+      } else {
+        rs = fs.createReadStream(filePath, { start, end });
+        res.statusCode = 206;
+      }
+      
       if (filePath.match(config.compress)) {
         rs = compress(rs, req, res);
-        console.log('1112');
       }
       rs.pipe(res);
     } else if (stats.isDirectory()) {
