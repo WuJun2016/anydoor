@@ -1,8 +1,11 @@
 {
   "name": "anydoor",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "static web servers",
-  "main": "index.js",
+  "main": "src/app",
+  "bin": {
+    "anydoor": "bin/anydoor"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint .",
@@ -30,6 +33,7 @@
   "dependencies": {
     "chalk": "^2.4.2",
     "handlebars": "^4.1.1",
-    "supervisor": "^0.12.0"
+    "supervisor": "^0.12.0",
+    "yargs": "^13.2.2"
   }
 }
